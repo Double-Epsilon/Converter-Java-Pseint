@@ -1,0 +1,85 @@
+public static void main(String[] args) {
+    Scanner cin = new Scanner(System.in);
+    
+    int a=0;
+    double b=0.0, c=1.0;
+    float x = 1000.10101;
+    boolean booleano;
+    string word = "xddd d", doub = "hola gente de yt";
+    char c = 'a';
+
+    a = cin.nextInt();
+    b = cin.nextDouble();
+    c = cin.nextFloat();
+    booleano = cin.nextBool();
+    word = cin.next();
+    c = cin.nextChar();
+
+    if(a == b){
+        System.out.println(a + " igual a " + b);
+    }else{
+        System.out.print(a + " no igual a " + b);
+    }
+
+    while(i>j){
+        i++;
+        j--;
+        if(i == j) System.out.print("jajaxd");
+    }
+
+    do{
+        z *= a * b;
+    }while(z < 100000);
+    do{
+        z +=a + b;
+    }while(z <= 100000);
+    do{
+        z -= a - b;
+    }while(z > 100000);
+    do{
+        z /= a / b;
+    }while(z >= 100000);
+    do{
+        z %= a % b;
+    }while(!(z < 10));
+    
+    if(!true) System.out.print("xddd");
+
+    if(!false) System.out.print("D:");
+    for(int i=0; i<10; i++){
+        if(i < 5) System.out.println(i + " menor a 5");
+        else System.out.println(i + " mayor a 5");
+    }
+    for(int i=10; i>0; i--){
+        if(i < 5) System.out.println(i + " menor a 5");
+        else System.out.println(i + " mayor a 5");
+    }
+
+    for(int i=2; i<100; i+=2){
+        while(i < 50){
+            do{
+                if(i == 5) System.out.println("5");
+                else System.out.println("Menor a 20");
+            }while(i < 20);
+        }
+    }
+
+    x += y;
+    x -= y;
+    x *= y;
+    x /= y;
+    x %= y;
+
+    while(x > y){
+        do{
+            for(int i=0; i<=n; i++){
+                System.out.print(i);
+            }
+            for(int i=10; i>=0; i--){
+                System.out.print(i);
+            }
+        }while(x < y);
+    }
+
+    cin.close()
+}

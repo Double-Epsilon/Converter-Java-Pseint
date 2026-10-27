@@ -61,7 +61,7 @@ void checkCloseStatement(string &line, int &tabs, stack<string> &openStatements,
 
 
 // Get variable names
-tuple<string, int, string> getVariableName(string line, int pos){
+tuple<string, int, string> getVariableName(string &line, int initialPos){
     // To storage: var name, the pos of the next var (-1 if this is the last), var initial value
     tuple<string, int, string> varStorager("", -1, "");
 
@@ -69,7 +69,7 @@ tuple<string, int, string> getVariableName(string line, int pos){
     bool readingVarName = true;
 
     // Read all the variable name
-    for(int i=pos; i<line.size(); i++){
+    for(int i=initialPos; i<line.size(); i++){
         // Read another character to the initial value (if we aren't reading the var name; exclude semicolons and commas)
         if(line[i] != ';' && line[i] != ',' && !readingVarName) get<2>(varStorager) += line[i];
 
@@ -166,6 +166,30 @@ void declareVariables(string &varType, string &line, int &tabs){
 
     // Print var initializations (only if there are)
     if(varInits != "") declareInitializations(varInits, tabs);
+}
+
+
+// Declare an array
+void declareArray(string varType, string &line){
+    // Beginning of the array declaring statement
+    cout << "Dimension ";
+
+    // To storage the initial position (skip variable type word)
+    int initialPos = line.find(varType) + varType.size() + 1;
+    
+    // To storage the array name
+    string array = "";
+
+    // Itearte through the whole line
+    for(int i=initialPos; i<line.size(); i++){
+        // If it's a normal character, add it to the array name
+        if(line[i] != ';') array += line[i];
+        // If it's a semicolon, finish
+        else break;
+    }
+
+    // Print the array name
+    cout << array << endl;
 }
 
 
@@ -316,7 +340,7 @@ pair<int, string> declareForStatement(string &line, int initialPos){
             // If it isn't a semicolon, it's part of the final value
             if(line[i] != ';') finValue += line[i];
             // If it's a semicolon, finish
-            }else{
+            else{
                 // Store the new initial position to continue searching later
                 initialPos = i+1;
                 // Finish
@@ -765,9 +789,9 @@ int main(){
 
 
         // Check if we need to close an open statement
-        if(!openStatements.empty() && line.find("}") != string::npos &&
-            !(line.find("else") != string::npos && openStatements.top() == "if") &&
-            !(line.find("while") != string::npos && openStatements.top() == "dowhile")){
+        if(!openStatements.empty() && line.find("}", currentChar) != string::npos &&
+            !(line.find("else", currentChar) != string::npos && openStatements.top() == "if") &&
+            !(line.find("while", currentChar) != string::npos && openStatements.top() == "dowhile")){
             checkCloseStatement(line, tabs, openStatements, currentChar, false);
         }
 
@@ -800,7 +824,7 @@ int main(){
 
 
         // Check if it's an else statement declaration
-        if(line.find("else") != string::npos && openStatements.top() == "if"){
+        if(line.find("else", currentChar) != string::npos && openStatements.top() == "if"){
             // Print tabulations for the new line
             printTabs(tabs - 1);
 
@@ -808,7 +832,7 @@ int main(){
             cout << "SiNo" << endl;
 
             // Check where the else ends
-            for(int i=line.find("else") + 4; i<line.size(); i++){
+            for(int i=line.find("else", currentChar) + 4; i<line.size(); i++){
                 // If it's a space, skip
                 if(line[i] == ' ') continue;
                 // If it's another character, finish
@@ -826,12 +850,12 @@ int main(){
         
 
         // Check if it's an if statement declaration
-        if(line.find("if(") != string::npos){
+        if(line.find("if(", currentChar) != string::npos){
             // Print tabulations for the new line
             printTabs(tabs);
 
             // Declare a new if statement + storage the current character in the line + storage if it's a one-line if
-            pair<int, string> ans = declareIfStatement(line, line.find("if(") + 3);
+            pair<int, string> ans = declareIfStatement(line, line.find("if(", currentChar) + 3);
             currentChar = ans.first;
             oneLineStatement = ans.second;
 
@@ -843,12 +867,12 @@ int main(){
 
 
         // Check if it's a for statement declaration
-        if(line.find("for(") != string::npos){
+        if(line.find("for(", currentChar) != string::npos){
             // Print tabulations for the new line
             printTabs(tabs);
 
             // Declare a new for statement + storage the current character in the line + storage if it's a one-line for
-            pair<int, string> ans = declareForStatement(line, line.find("for(") + 4);
+            pair<int, string> ans = declareForStatement(line, line.find("for(", currentChar) + 4);
             currentChar = ans.first;
             oneLineStatement = ans.second;
 
@@ -860,12 +884,12 @@ int main(){
 
 
         // Check if it's a do/while statement declaration
-        if((line.find("do ") != string::npos) || (line.find("do{") != string::npos)){
+        if((line.find("do ", currentChar) != string::npos) || (line.find("do{", currentChar) != string::npos)){
             // Print tabulations for the new line
             printTabs(tabs);
 
             // Declare a new do/while statement + storage the current character in the line
-            currentChar = declareDoWhileStatement(line, line.find("do") + 2);
+            currentChar = declareDoWhileStatement(line, line.find("do", currentChar) + 2);
 
             // Mark a new open statement
             openStatements.push("dowhile");
@@ -875,20 +899,20 @@ int main(){
 
 
         // Check if it's a while statement declaration
-        if(line.find("while(") != string::npos){
+        if(line.find("while(", currentChar) != string::npos){
             // Check if this is a do/while or a normal while
             if(openStatements.top() == "dowhile"){
                 // Print tabulations for the new line (if it's a do/while, print one tab less)
                 printTabs(tabs - 1);
                 // Declare the finish part of a do/while + storage the current character in the line
-                currentChar = declareWhileStatement(line, line.find("while(") + 6, true);
+                currentChar = declareWhileStatement(line, line.find("while(", currentChar) + 6, true);
                 // Force closing the dowhile
                 checkCloseStatement(line, tabs, openStatements, currentChar, true);
             }else{
                 // Print tabulations for the new line
                 printTabs(tabs);
                 // Declare a new while statement + storage the current character in the line
-                currentChar = declareWhileStatement(line, line.find("while(") + 6, false);
+                currentChar = declareWhileStatement(line, line.find("while(", currentChar) + 6, false);
                 // Mark a new open statement
                 openStatements.push("while");
                 // Add a tabulation
@@ -899,22 +923,28 @@ int main(){
 
         // To storage variable types
         string varType = "none";
+        // Flag: This is an array
+        bool isArray = false;
 
         // Check if it's a variable declaration (not a function declaration)
-        if(line.find("(") == string::npos && line.find("{") == string::npos){
-            //cout << line << endl;
+        if(line.find("(", currentChar) == string::npos && line.find("{", currentChar) == string::npos){
             // If you're declaring an integer (Entero)
-            if(line.find("int") != string::npos) varType = "int";
+            if(line.find("int", currentChar) != string::npos) varType = "int";
             // If you're declaring a double (Real)
-            else if(line.find("double") != string::npos) varType = "double";
+            else if(line.find("double", currentChar) != string::npos) varType = "double";
             // If you're declaring a float (Real)
-            else if(line.find("float") != string::npos) varType = "float";
+            else if(line.find("float", currentChar) != string::npos) varType = "float";
             // If you're declaring a string (Caracter)
-            else if(line.find("string") != string::npos) varType = "string";
+            else if(line.find("string", currentChar) != string::npos) varType = "string";
             // If you're declaring a char (Caracter)
-            else if(line.find("char") != string::npos) varType = "char";
+            else if(line.find("char", currentChar) != string::npos) varType = "char";
             // If you're declaring a boolean (Logico)
-            else if(line.find("boolean") != string::npos) varType = "boolean";
+            else if(line.find("boolean", currentChar) != string::npos) varType = "boolean";
+            
+            // If we find square brackets, this is an array
+            if(line.find("[", currentChar) != string::npos && line.find("]", currentChar) != string::npos){
+                isArray = true;
+            }
 
             // If you're actually declaring a variable
             if(varType != "none"){
@@ -922,7 +952,9 @@ int main(){
                 printTabs(tabs);
 
                 // Declare a new variable
-                declareVariables(varType, line, tabs);
+                if(!isArray) declareVariables(varType, line, tabs);
+                // Declare a new array
+                else declareArray(varType, line);
 
                 // Dismiss the rest of the iteration
                 continue;
@@ -931,22 +963,22 @@ int main(){
     
 
         // Check if it's an input line
-        if(line.find(".next") != string::npos){
+        if(line.find(".next", currentChar) != string::npos){
             // Print tabulations for the new line
             printTabs(tabs);
 
             // Print input line (.next---()) + storage the current character in the line
-            currentChar = printInputLine(line.find(".next"), line);
+            currentChar = printInputLine(line.find(".next", currentChar), line);
         }
 
 
         // Check if it's an output line
-        if(line.find("System.out.print") != string::npos){
+        if(line.find("System.out.print", currentChar) != string::npos){
             // Print tabulations for the new line
             printTabs(tabs);
 
             // Print output line (system.out.print) + storage the current character in the line
-            currentChar = printOutputLine(line.find("System.out.print") + 16, line);
+            currentChar = printOutputLine(line.find("System.out.print", currentChar) + 16, line);
         }
 
 
@@ -1041,3 +1073,4 @@ int main(){
     return 0;
 }
 // 1043 lines, 26/10/2026
+// 1076 lines, 27/10/2026
